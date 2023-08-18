@@ -1,5 +1,10 @@
 package com.epam.mjc;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class MethodParser {
 
     /**
@@ -20,6 +25,47 @@ public class MethodParser {
      * @return {@link MethodSignature} object filled with parsed values from source string
      */
     public MethodSignature parseFunction(String signatureString) {
-        throw new UnsupportedOperationException("You should implement this method.");
+
+        String[] arr = signatureString.split(" ");
+        List<MethodSignature.Argument> listArgs = parseArguments(signatureString);
+
+        MethodSignature methodSignature = new MethodSignature("2", listArgs);
+        String modeRegex = "public|private|protected";
+        Pattern pattern = Pattern.compile(modeRegex);
+        Matcher matcher = pattern.matcher(signatureString);
+
+        if (matcher.find()) {
+            methodSignature.setAccessModifier(matcher.group().trim());
+            methodSignature.setReturnType(arr[1]);
+            methodSignature.setMethodName(extractMethodName(arr[2]));
+        } else {
+            methodSignature.setAccessModifier(null);
+            methodSignature.setReturnType(arr[0]);
+            methodSignature.setMethodName(extractMethodName(arr[1]));
+        }
+
+        return methodSignature;
+    }
+
+    private List<MethodSignature.Argument> parseArguments(String signatureString) {
+        List<MethodSignature.Argument> listArgs = new ArrayList<>();
+        int i = signatureString.indexOf('(');
+        int b = signatureString.indexOf(')');
+
+        if (b - i > 1) {
+            String s = signatureString.substring(i + 1, b);
+            String[] arrs = s.split(", ");
+            for (String st : arrs) {
+                String[] arr1 = st.split(" ");
+                listArgs.add(new MethodSignature.Argument(arr1[0], arr1[1]));
+            }
+        }
+
+        return listArgs;
+    }
+
+    private String extractMethodName(String methodDeclaration) {
+        int a = methodDeclaration.indexOf('(');
+        return methodDeclaration.substring(0, a);
     }
 }
